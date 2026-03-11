@@ -1,88 +1,61 @@
-# Terraform Configuration for DocuMagic Architecture
+# =============================================================================
+# DocuMagic – Agentic AI Architecture
+# Terraform Root Configuration
+# =============================================================================
+
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+  }
+
+  # Uncomment to enable remote state (create the bucket + DynamoDB table first)
+  # backend "s3" {
+  #   bucket         = "documagic-terraform-state"
+  #   key            = "documagic/terraform.tfstate"
+  #   region         = "us-west-2"
+  #   encrypt        = true
+  #   dynamodb_table = "documagic-terraform-locks"
+  # }
+}
 
 provider "aws" {
-  region = "us-west-2"
-}
+  region = var.aws_region
 
-# Variables
-variable "app_name" {
-  default = "DocuMagic"
-}
-
-# S3 Bucket
-resource "aws_s3_bucket" "documagic_bucket" {
-  bucket = "${var.app_name}-bucket"
-  acl    = "private"
-}
-
-# DynamoDB
-resource "aws_dynamodb_table" "documagic_table" {
-  name         = "${var.app_name}-table"
-  billing_mode = "PAY_PER_REQUEST"
-  attribute {
-    name = "id"
-    type = "S"
+  default_tags {
+    tags = local.common_tags
   }
 }
 
-# Lambda Function
-resource "aws_lambda_function" "documagic_lambda" {
-  function_name = "${var.app_name}-lambda"
-  runtime       = "python3.8"
-  role          = aws_iam_role.lambda_execution_role.arn
-  handler       = "lambda_function.handler"
-  source_code_hash = filebase64sha256("path/to/your/lambda.zip")
+# ---------------------------------------------------------------------------
+# Locals – shared naming and tagging helpers
+# ---------------------------------------------------------------------------
+locals {
+  app_name    = "DocuMagic"
+  name_prefix = "${local.app_name}-${var.environment}"
+
+  common_tags = {
+    Project     = local.app_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+    Owner       = "DocuMagic-Team"
+  }
 }
 
-# API Gateway
-resource "aws_api_gateway_rest_api" "documagic_api" {
-  name        = "${var.app_name}-api"
-}
+# ---------------------------------------------------------------------------
+# Data sources
+# ---------------------------------------------------------------------------
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
-# Cognito User Pool
-resource "aws_cognito_user_pool" "documagic_user_pool" {
-  name = "${var.app_name}-user-pool"
-}
-
-# EventBridge Rule
-resource "aws_cloudwatch_event_rule" "documagic_event_rule" {
-  name = "${var.app_name}-event-rule"
-  event_pattern = jsonencode({
-    "source": ["my.source"],
-  })
-}
-
-# Step Functions
-resource "aws_sfn_state_machine" "documagic_state_machine" {
-  name     = "${var.app_name}-state-machine"
-  role_arn = aws_iam_role.step_function_role.arn
-  definition = jsonencode({
-    "StartAt": "MyState",
-    "States": {
-      "MyState": {
-        "Type": "Pass",
-        "End": true
-      }
-    }
-  })
-}
-
-# Bedrock Configuration (Example)
-resource "aws_bedrock_model" "documagic_bedrock_model" {
-  model_id = "example-bedrock-model"
-}
-
-# IAM Role for Lambda
-resource "aws_iam_role" "lambda_execution_role" {
-  name = "${var.app_name}-lambda-role"
-  assume_role_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow"
-    }]
-  })
+data "aws_availability_zones" "available" {
+  state = "available"
 }

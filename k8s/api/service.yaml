@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: documagic-api
+  namespace: documagic
+  labels:
+    app.kubernetes.io/name: documagic-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: documagic-data-pipeline
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: documagic-api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http

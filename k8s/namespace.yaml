@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: documagic
+  labels:
+    app.kubernetes.io/name: documagic
+    app.kubernetes.io/part-of: documagic-data-pipeline
