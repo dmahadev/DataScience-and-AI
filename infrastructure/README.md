@@ -64,7 +64,9 @@ configured and wired together here.
 | `textract.tf` | Textract async SNS topic, subscriptions, SSM parameters |
 | `bedrock.tf` | Bedrock Knowledge Base (OpenSearch Serverless vector store), Agent, Agent Alias, Data Source |
 | `opensearch.tf` | OpenSearch Service domain (VPC, encryption, auto-tune, logging) |
-| `dynamodb.tf` | Three DynamoDB tables: documents, sessions, knowledge-base |
+| `opensearch_indexes.tf` | Index mappings stored in SSM Parameter Store, ISM rollover policy |
+| `rds.tf` | Aurora PostgreSQL 15 Serverless v2 cluster, RDS Proxy, KMS key, Secrets Manager, CloudWatch alarms |
+| `dynamodb.tf` | Seven DynamoDB tables: documents, sessions, knowledge-base, agent-conversations, agent-tasks, rate-limits, tenant-config |
 | `step_functions.tf` | Document AI processing state machine (7-step pipeline) |
 | `eventbridge.tf` | Custom event bus, four EventBridge rules, SNS pipeline-events topic |
 | `amplify.tf` | Amplify App, main/staging branches, environment variables |
@@ -117,6 +119,11 @@ terraform apply \
 | `msk_broker_count` | `3` | Number of Kafka brokers |
 | `opensearch_instance_type` | `r6g.large.search` | OpenSearch data node type |
 | `opensearch_instance_count` | `2` | Number of OpenSearch nodes |
+| `rds_engine_version` | `15.4` | Aurora PostgreSQL engine version |
+| `rds_serverless_min_capacity` | `0.5` | Aurora Serverless v2 minimum ACUs |
+| `rds_serverless_max_capacity` | `16.0` | Aurora Serverless v2 maximum ACUs |
+| `rds_reader_count` | `1` | Number of Aurora read replicas |
+| `rds_backup_retention_days` | `14` | Aurora automated backup retention |
 | `bedrock_agent_model_id` | `anthropic.claude-3-sonnet-20240229-v1:0` | Claude model for Bedrock Agent |
 | `lambda_runtime` | `python3.11` | Lambda runtime |
 | `log_retention_days` | `30` | CloudWatch log retention |
@@ -151,7 +158,15 @@ terraform apply \
 ### Knowledge Transformation
 - **Amazon Bedrock Knowledge Base** – OpenSearch Serverless vector store with S3 data source
 - **Amazon Comprehend** – entity extraction, sentiment analysis, PII detection
-- **Amazon DynamoDB (x3)** – documents, sessions, knowledge-base tables
+- **Amazon DynamoDB (x7)** – documents, sessions, knowledge-base, agent-conversations, agent-tasks, rate-limits, tenant-config
+
+### Database Tier
+- **Amazon Aurora PostgreSQL 15 Serverless v2** – relational master data (organisations, users, documents, billing, audit), with RDS Proxy for Lambda connection pooling
+- **Amazon OpenSearch Service (4 indexes)** – hybrid BM25+knn document search, RAG chunk store, audit logs, entity registry
+- **Amazon OpenSearch Serverless** – Bedrock Knowledge Base vector store (required by Bedrock KB API)
+- **Amazon DynamoDB (7 tables)** – hot operational data at single-digit millisecond latency
+
+See [`../docs/database/README.md`](../docs/database/README.md) for the full database design documentation.
 
 ### Orchestration and Events
 - **AWS Step Functions** – STANDARD state machine with parallel enrichment, retries, error handling
