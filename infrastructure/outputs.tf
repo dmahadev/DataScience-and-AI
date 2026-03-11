@@ -202,3 +202,89 @@ output "sns_alarm_topic_arn" {
   description = "SNS topic ARN for CloudWatch alarms"
   value       = aws_sns_topic.alarms.arn
 }
+
+# ---------------------------------------------------------------------------
+# RDBMS – Aurora PostgreSQL
+# ---------------------------------------------------------------------------
+output "aurora_cluster_endpoint" {
+  description = "Aurora PostgreSQL writer endpoint"
+  value       = aws_rds_cluster.documagic.endpoint
+}
+
+output "aurora_cluster_reader_endpoint" {
+  description = "Aurora PostgreSQL reader endpoint"
+  value       = aws_rds_cluster.documagic.reader_endpoint
+}
+
+output "aurora_cluster_id" {
+  description = "Aurora cluster identifier"
+  value       = aws_rds_cluster.documagic.cluster_identifier
+}
+
+output "aurora_rds_proxy_endpoint" {
+  description = "RDS Proxy endpoint for Lambda connection pooling"
+  value       = aws_db_proxy.documagic.endpoint
+}
+
+output "aurora_master_secret_arn" {
+  description = "Secrets Manager ARN for Aurora master credentials"
+  value       = aws_secretsmanager_secret.aurora_master.arn
+  sensitive   = true
+}
+
+output "aurora_app_secret_arn" {
+  description = "Secrets Manager ARN for Aurora application user credentials"
+  value       = aws_secretsmanager_secret.aurora_app.arn
+  sensitive   = true
+}
+
+# ---------------------------------------------------------------------------
+# NoSQL – Additional DynamoDB tables
+# ---------------------------------------------------------------------------
+output "dynamodb_agent_conversations_table_name" {
+  description = "DynamoDB table for agent conversation history"
+  value       = aws_dynamodb_table.agent_conversations.id
+}
+
+output "dynamodb_agent_tasks_table_name" {
+  description = "DynamoDB table for agentic task queue"
+  value       = aws_dynamodb_table.agent_tasks.id
+}
+
+output "dynamodb_agent_tasks_stream_arn" {
+  description = "DynamoDB Stream ARN for the agent-tasks table"
+  value       = aws_dynamodb_table.agent_tasks.stream_arn
+}
+
+output "dynamodb_rate_limits_table_name" {
+  description = "DynamoDB table for API rate-limit counters"
+  value       = aws_dynamodb_table.rate_limits.id
+}
+
+output "dynamodb_tenant_config_table_name" {
+  description = "DynamoDB table for per-tenant configuration"
+  value       = aws_dynamodb_table.tenant_config.id
+}
+
+# ---------------------------------------------------------------------------
+# Vector DB – OpenSearch index metadata
+# ---------------------------------------------------------------------------
+output "opensearch_documents_index_ssm_path" {
+  description = "SSM path holding the documagic-documents index mapping"
+  value       = aws_ssm_parameter.os_index_documents_mapping.name
+}
+
+output "opensearch_kb_chunks_index_ssm_path" {
+  description = "SSM path holding the documagic-kb-chunks index mapping"
+  value       = aws_ssm_parameter.os_index_kb_chunks_mapping.name
+}
+
+output "opensearch_audit_logs_index_ssm_path" {
+  description = "SSM path holding the documagic-audit-logs index mapping"
+  value       = aws_ssm_parameter.os_index_audit_logs_mapping.name
+}
+
+output "opensearch_entities_index_ssm_path" {
+  description = "SSM path holding the documagic-entities index mapping"
+  value       = aws_ssm_parameter.os_index_entities_mapping.name
+}

@@ -207,3 +207,36 @@ variable "alarm_email" {
   type        = string
   default     = "ops@documagic.example.com"
 }
+
+# ---------------------------------------------------------------------------
+# RDS / Aurora PostgreSQL (RDBMS tier)
+# ---------------------------------------------------------------------------
+variable "rds_engine_version" {
+  description = "Aurora PostgreSQL engine version"
+  type        = string
+  default     = "15.4"
+}
+
+variable "rds_serverless_min_capacity" {
+  description = "Minimum Aurora Serverless v2 capacity in ACUs (1 ACU = 2 GiB RAM)"
+  type        = number
+  default     = 0.5
+}
+
+variable "rds_serverless_max_capacity" {
+  description = "Maximum Aurora Serverless v2 capacity in ACUs"
+  type        = number
+  default     = 16.0
+}
+
+variable "rds_reader_count" {
+  description = "Number of Aurora read replicas"
+  type        = number
+  default     = 1
+}
+
+variable "rds_backup_retention_days" {
+  description = "Aurora automated backup retention period in days"
+  type        = number
+  default     = 14
+}
